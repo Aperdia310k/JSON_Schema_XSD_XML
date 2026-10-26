@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apuntes: Validación de Datos con JSON Schema y XML Schema (XSD)</title>
+  <style>
+    :root {
+      --primary: #2b3a4a;
+      --secondary: #007acc;
+      --accent-json: #d97706;
+      --accent-xml: #2563eb;
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-main);
+      background-color: var(--bg-body);
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    header {
+      border-bottom: 3px solid var(--secondary);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.4rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: var(--secondary);
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    ul, ol {
+      margin-bottom: 1.2rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: var(--primary);
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 1.2rem;
+      }
+    }
+
+    .card-json {
+      border-top: 4px solid var(--accent-json);
+      background: #fffbeb;
+      padding: 1.2rem;
+      border-radius: 6px;
+    }
+
+    .card-xml {
+      border-top: 4px solid var(--accent-xml);
+      background: #eff6ff;
+      padding: 1.2rem;
+      border-radius: 6px;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+    }
+
+    code {
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge-json { background-color: #fef3c7; color: #92400e; }
+    .badge-xml { background-color: #dbeafe; color: #1e40af; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Lenguajes de Marcas y Sistemas de Gestión de Información</h1>
+      <p class="subtitle">Unidad Didáctica: Validación de Documentos — JSON Schema vs XML Schema (XSD)</p>
+    </header>
+
+    <section>
+      <h2>1. Introducción a los Esquemas de Validación</h2>
+      <p>Tanto en <strong>XML</strong> como en <strong>JSON</strong>, un <strong>esquema</strong> es un documento especial que actúa como un <strong>contrato o plantilla formal</strong>. Define las reglas que determinan si una estructura de datos es válida o no.</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Criterio</th>
+            <th>JSON Schema</th>
+            <th>XML Schema (XSD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Formato del esquema</strong></td>
+            <td>Documento escrito en sintaxis JSON.</td>
+            <td>Documento escrito en sintaxis XML.</td>
+          </tr>
+          <tr>
+            <td><strong>Objetivo</strong></td>
+            <td>Validar archivos de datos JSON (<code>.json</code>).</td>
+            <td>Validar documentos XML (<code>.xml</code>).</td>
+          </tr>
+          <tr>
+            <td><strong>Control de Tipos de Datos</strong></td>
+            <td>Sencillo (string, number, integer, boolean, object, array, null).</td>
+            <td>Muy amplio y estricto (xs:string, xs:integer, xs:date, xs:decimal, etc.).</td>
+          </tr>
+          <tr>
+            <td><strong>Comportamiento por defecto</strong></td>
+            <td>Permite claves no definidas en el esquema salvo que se restrinja.</td>
+            <td>Strict por defecto; solo permite los elementos especificados en la secuencia.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>2. JSON Schema: Conceptos y Sintaxis</h2>
+      <p>JSON Schema permite definir tipos de datos, restricciones numéricas, expresiones regulares para cadenas y obligatoriedad de propiedades en un objeto JSON.</p>
+
+      <h3>Propiedades principales de un JSON Schema</h3>
+      <ul>
+        <li><code>$schema</code>: Especifica la versión de la especificación JSON Schema (p. ej., Draft 07 o 2020-12).</li>
+        <li><code>title</code> y <code>description</code>: Documentación aclaratoria del esquema (no afectan a la validación).</li>
+        <li><code>type</code>: Tipo de dato permitido (<code>object</code>, <code>array</code>, <code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>, <code>null</code>).</li>
+        <li><code>properties</code>: Objeto que define las claves permitidas y la estructura requerida para cada una.</li>
+        <li><code>required</code>: Array de cadenas con las claves obligatorias en el objeto validado.</li>
+        <li><code>additionalProperties</code>: Booleano (<code>false</code> para prohibir campos extra no declarados en <code>properties</code>).</li>
+        <li><code>minimum</code> / <code>maximum</code> / <code>exclusiveMinimum</code>: Restricciones numéricas.</li>
+        <li><code>items</code>: Define el tipo y la estructura de los elementos de un array.</li>
+      </ul>
+
+      <h3>Ejemplo Práctico en JSON Schema</h3>
+      <pre><code>{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Producto",
+  "description": "Esquema para un producto en el catálogo",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "precio": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMinimum": true
+    },
+    "etiquetas": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["id", "nombre", "precio"],
+  "additionalProperties": false
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>3. XML Schema (XSD): Conceptos y Sintaxis</h2>
+      <p>El <strong>W3C XML Schema (XSD)</strong> se utiliza para definir la estructura de un documento XML mediante etiquetas propias bajo el espacio de nombres <code>http://www.w3.org/2001/XMLSchema</code>.</p>
+
+      <h3>Conceptos clave en XSD</h3>
+      <ul>
+        <li><code>xs:element</code>: Define una etiqueta XML. Puede tener atributo <code>name</code> y <code>type</code>.</li>
+        <li><strong>Tipos Simples (Simple Types)</strong>: Elementos que solo contienen texto o datos básicos (sin etiquetas secundarias ni atributos).</li>
+        <li><strong>Tipos Complejos (Complex Types)</strong>: Elementos que contienen otros elementos hijos, atributos o ambos.</li>
+        <li><code>xs:sequence</code>: Los elementos hijos deben aparecer rigurosamente en el orden especificado.</li>
+        <li><code>minOccurs</code> y <code>maxOccurs</code>: Controlan la cardinalidad (ej. <code>minOccurs="0"</code> indica que es opcional; <code>maxOccurs="unbounded"</code> permite repetirlo infinitas veces).</li>
+      </ul>
+
+      <h3>Ejemplo Práctico en XSD</h3>
+      <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"&gt;
+
+  &lt;xs:element name="producto"&gt;
+    &lt;xs:complexType&gt;
+      &lt;xs:sequence&gt;
+        &lt;xs:element name="id" type="xs:positiveInteger" /&gt;
+        &lt;xs:element name="nombre" type="xs:string" /&gt;
+        &lt;xs:element name="precio"&gt;
+          &lt;xs:simpleType&gt;
+            &lt;xs:restriction base="xs:decimal"&gt;
+              &lt;xs:minExclusive value="0" /&gt;
+            &lt;/xs:restriction&gt;
+          &lt;/xs:simpleType&gt;
+        &lt;/xs:element&gt;
+        &lt;xs:element name="etiquetas" minOccurs="0"&gt;
+          &lt;xs:complexType&gt;
+            &lt;xs:sequence&gt;
+              &lt;xs:element name="etiqueta" type="xs:string" maxOccurs="unbounded" /&gt;
+            &lt;/xs:sequence&gt;
+          &lt;/xs:complexType&gt;
+        &lt;/xs:element&gt;
+      &lt;/xs:sequence&gt;
+    &lt;/xs:complexType&gt;
+  &lt;/xs:element&gt;
+
+&lt;/xs:schema&gt;</code></pre>
+    </section>
+
+    <section>
+      <h2>4. Comparativa Práctica Paralela</h2>
+      <p>A continuación se representa la misma información estructurada en JSON y XML con sus respectivas validaciones.</p>
+
+      <div class="grid-2">
+        <div class="card-json">
+          <span class="badge badge-json">JSON Válido</span>
+          <pre><code>{
+  "id": 101,
+  "nombre": "Teclado Mecánico",
+  "precio": 45.99,
+  "etiquetas": ["perifericos", "pc"]
+}</code></pre>
+        </div>
+
+        <div class="card-xml">
+          <span class="badge badge-xml">XML Válido</span>
+          <pre><code>&lt;producto&gt;
+  &lt;id&gt;101&lt;/id&gt;
+  &lt;nombre&gt;Teclado Mecánico&lt;/nombre&gt;
+  &lt;precio&gt;45.99&lt;/precio&gt;
+  &lt;etiquetas&gt;
+    &lt;etiqueta&gt;perifericos&lt;/etiqueta&gt;
+    &lt;etiqueta&gt;pc&lt;/etiqueta&gt;
+  &lt;/etiquetas&gt;
+&lt;/producto&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Ejercicios Prácticos para el Alumnado</h2>
+
+      <h3>Ejercicio 1: Identificación de Errores en JSON Schema</h3>
+      <p>Dado el esquema JSON de la Sección 2, indica razonadamente si los siguientes documentos son <strong>válidos o inválidos</strong>:</p>
+      <ol>
+        <li><code>{"id": 1, "nombre": "Silla Gamer"}</code> &rarr; <em>¿Válido? ¿Por qué?</em></li>
+        <li><code>{"id": 2, "nombre": "Mesa", "precio": -10}</code> &rarr; <em>¿Válido? ¿Por qué?</em></li>
+        <li><code>{"id": 3, "nombre": "Ratón", "precio": 15, "stock": 50}</code> &rarr; <em>¿Válido? ¿Por qué?</em></li>
+      </ol>
+
+      <details>
+        <summary><strong>Ver soluciones del Ejercicio 1</strong></summary>
+        <ol style="margin-top: 0.5rem;">
+          <li><strong>Inválido:</strong> Falta la propiedad requerida <code>precio</code> (definida en el array <code>required</code>).</li>
+          <li><strong>Inválido:</strong> El <code>precio</code> no cumple la restricción <code>exclusiveMinimum: 0</code> (debe ser estricta y positivamente mayor que 0).</li>
+          <li><strong>Inválido:</strong> Contiene el campo <code>stock</code> que no está declarado y el esquema incluye <code>"additionalProperties": false</code>.</li>
+        </ol>
+      </details>
+
+      <h3 style="margin-top: 1.5rem;">Ejercicio 2: Creación de Esquema XSD</h3>
+      <p>Diseña un esquema XSD para un elemento raíz llamado <code>alumno</code> que contenga:</p>
+      <ul>
+        <li>Un elemento <code>nombre</code> (cadena de texto obligatorio).</li>
+        <li>Un elemento <code>edad</code> (entero obligatorio).</li>
+        <li>Un atributo <code>expediente</code> (entero obligatorio en la etiqueta <code>alumno</code>).</li>
+      </ul>
+
+      <details>
+        <summary><strong>Ver solución del Ejercicio 2</strong></summary>
+        <pre style="margin-top: 0.5rem;"><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;xs:element name="alumno"&gt;
+    &lt;xs:complexType&gt;
+      &lt;xs:sequence&gt;
+        &lt;xs:element name="nombre" type="xs:string" /&gt;
+        &lt;xs:element name="edad" type="xs:integer" /&gt;
+      &lt;/xs:sequence&gt;
+      &lt;xs:attribute name="expediente" type="xs:integer" use="required" /&gt;
+    &lt;/xs:complexType&gt;
+  &lt;/xs:element&gt;
+&lt;/xs:schema&gt;</code></pre>
+      </details>
+    </section>
+
+    <footer>
+      <p>Material didáctico adaptado para el módulo de <strong>Lenguajes de Marcas y Sistemas de Gestión de Información (LMSGI)</strong>.</p>
+    </footer>
+  </div>
+
+</body>
+</html>
